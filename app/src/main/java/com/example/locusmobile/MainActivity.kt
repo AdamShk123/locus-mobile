@@ -20,21 +20,29 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -137,12 +145,34 @@ fun ColumnScope.FieldContainer(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
         TextField(
-            value = stringResource(R.string.login_screen_username_field),
-            onValueChange = {}
+            label = {Text(text = stringResource(R.string.login_screen_username_field))},
+            value = "",
+            onValueChange = {},
+            trailingIcon = {
+                Icon(Icons.Filled.Close, contentDescription = "Action Icon")
+            },
+            colors = TextFieldDefaults
+                .colors()
+                .copy(
+                    unfocusedContainerColor = colorResource(R.color.dark_gray),
+                    focusedContainerColor = colorResource(R.color.dark_gray),
+                    focusedIndicatorColor = colorResource(R.color.yellow)
+                )
         )
         TextField(
-            value = stringResource(R.string.login_screen_password_field),
-            onValueChange =  {}
+            label = {Text(text = stringResource(R.string.login_screen_password_field))},
+            value = "",
+            onValueChange =  {},
+            trailingIcon = {
+                Icon(Icons.Filled.Visibility, contentDescription = "Action Icon")
+            },
+            colors = TextFieldDefaults
+                .colors()
+                .copy(
+                    unfocusedContainerColor = colorResource(R.color.dark_gray),
+                    focusedContainerColor = colorResource(R.color.dark_gray),
+                    focusedIndicatorColor = colorResource(R.color.yellow)
+                )
         )
     }
 }
@@ -150,20 +180,37 @@ fun ColumnScope.FieldContainer(modifier: Modifier = Modifier) {
 @Composable
 fun ButtonContainer(modifier: Modifier = Modifier) {
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Button(onClick = {}) {
+        TextButton(
+            onClick = {},
+            shape = RectangleShape,
+            colors = ButtonDefaults
+                .textButtonColors()
+                .copy(contentColor = colorResource(R.color.red))
+        ) {
             Text(
                 text = stringResource(R.string.login_screen_forgot_password_button),
-                modifier = Modifier
+                modifier = modifier
             )
         }
-        Button(onClick = {}) {
+        Button(
+            onClick = {},
+            shape = RectangleShape,
+            colors = ButtonDefaults
+                .buttonColors()
+                .copy(
+                    containerColor = colorResource(R.color.red),
+                    contentColor = colorResource(R.color.black)
+                )
+        ) {
             Text(
                 text = stringResource(R.string.login_screen_login_button),
-                modifier = Modifier
+                modifier = modifier
             )
         }
     }
@@ -172,7 +219,9 @@ fun ButtonContainer(modifier: Modifier = Modifier) {
 @Composable
 fun ColumnScope.DescriptionContainer(modifier: Modifier = Modifier) {
     Column(
-        modifier = modifier.weight(1f),
+        modifier = modifier
+            .weight(1f)
+            .padding(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
