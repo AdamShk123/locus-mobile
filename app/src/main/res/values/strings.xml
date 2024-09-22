@@ -3,4 +3,12 @@
     <string name="login_screen_title">Login</string>
     <string name="home_screen_title">Home</string>
     <string name="profile_screen_title">Profile</string>
+    <string name="login_screen_about_title">About LOCUS</string>
+    <string name="login_screen_about_description">LOCUS (Loyola\'s Online Connection to University Services) is an integrated, Web-based student information system. For more information and additional resources click here.</string>
+    <string name="login_screen_classes_title">Search for Classes</string>
+    <string name="login_screen_classes_description">To search for classes without logging in click here.</string>
+    <string name="login_screen_username_field">Username (UVID)</string>
+    <string name="login_screen_password_field">Password</string>
+    <string name="login_screen_forgot_password_button">Forgot Password?</string>
+    <string name="login_screen_login_button">Login</string>
 </resources>
