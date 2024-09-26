@@ -9,7 +9,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.tooling.preview.Preview
 import com.example.locusmobile.R
+import com.example.locusmobile.ui.theme.LocusMobileTheme
 
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier) {
@@ -21,5 +23,15 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.Center
     ) {
         Text(text = "Home")
+    }
+}
+
+@Preview(
+    showBackground = true
+)
+@Composable
+fun HomeScreenPreview() {
+    LocusMobileTheme {
+        HomeScreen()
     }
 }

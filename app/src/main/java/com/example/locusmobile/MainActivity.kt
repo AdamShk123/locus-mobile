@@ -15,9 +15,7 @@ class MainActivity : ComponentActivity() {
         Log.d(TAG, "onCreate Called")
         enableEdgeToEdge()
         setContent {
-            LocusMobileTheme {
-                LocusMobile()
-            }
+            LocusMobile()
         }
     }
 

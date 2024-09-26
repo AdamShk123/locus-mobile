@@ -34,14 +34,15 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.locusmobile.LocusMobile
 import com.example.locusmobile.R
 import com.example.locusmobile.TAG
+import com.example.locusmobile.ui.theme.LocusMobileTheme
 
 @Composable
-fun LoginScreen(modifier: Modifier = Modifier) {
+fun LoginScreen(modifier: Modifier = Modifier, onLoginButtonClicked: () -> Unit) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -49,13 +50,13 @@ fun LoginScreen(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Card()
+        Card(onLoginButtonClicked = onLoginButtonClicked)
         Logo()
     }
 }
 
 @Composable
-fun Card(modifier: Modifier = Modifier) {
+fun Card(modifier: Modifier = Modifier, onLoginButtonClicked: () -> Unit) {
     Column(
         modifier = modifier
             .fillMaxHeight(.8f)
@@ -65,20 +66,20 @@ fun Card(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        InputContainer()
+        InputContainer(onLoginButtonClicked = onLoginButtonClicked)
         DescriptionContainer()
     }
 }
 
 @Composable
-fun ColumnScope.InputContainer(modifier: Modifier = Modifier) {
+fun ColumnScope.InputContainer(modifier: Modifier = Modifier, onLoginButtonClicked: () -> Unit) {
     Column(
         modifier = modifier.weight(1f),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         FieldContainer()
-        ButtonContainer()
+        ButtonContainer(onLoginButtonClicked = onLoginButtonClicked)
     }
 }
 
@@ -130,7 +131,7 @@ fun ColumnScope.FieldContainer(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun ButtonContainer(modifier: Modifier = Modifier) {
+fun ButtonContainer(modifier: Modifier = Modifier, onLoginButtonClicked: () -> Unit) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -147,17 +148,18 @@ fun ButtonContainer(modifier: Modifier = Modifier) {
         ) {
             Text(
                 text = stringResource(R.string.login_screen_forgot_password_button),
+                textDecoration = TextDecoration.Underline,
                 modifier = modifier
             )
         }
         Button(
-            onClick = {},
+            onClick = onLoginButtonClicked,
             shape = RectangleShape,
             colors = ButtonDefaults
                 .buttonColors()
                 .copy(
                     containerColor = colorResource(R.color.red),
-                    contentColor = colorResource(R.color.black)
+                    contentColor = colorResource(R.color.white)
                 )
         ) {
             Text(
@@ -234,5 +236,15 @@ fun Logo(modifier: Modifier = Modifier) {
                 .fillMaxSize()
                 .padding(16.dp)
         )
+    }
+}
+
+@Preview(
+    showBackground = true
+)
+@Composable
+fun LoginScreenPreview() {
+    LocusMobileTheme {
+        LoginScreen(onLoginButtonClicked = {})
     }
 }
