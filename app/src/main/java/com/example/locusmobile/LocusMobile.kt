@@ -21,13 +21,15 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.locusmobile.ui.HomeScreen
-import com.example.locusmobile.ui.LoginScreen
+import com.example.locusmobile.ui.home.HomeScreen
+import com.example.locusmobile.ui.login.LoginViewModel
+import com.example.locusmobile.ui.login.LoginScreen
 import com.example.locusmobile.ui.theme.LocusMobileTheme
 
 enum class Screen(@StringRes val title: Int) {
@@ -44,6 +46,8 @@ fun LocusMobile(modifier: Modifier = Modifier) {
         backStackEntry?.destination?.route ?: Screen.Login.name
     )
 
+    val viewModel: LoginViewModel = viewModel()
+
     LocusMobileTheme {
         Scaffold(
             topBar = { TopNavigationBar(currentScreen = currentScreen) }
@@ -56,7 +60,7 @@ fun LocusMobile(modifier: Modifier = Modifier) {
                     .padding(innerPadding)
             ) {
                 composable(Screen.Login.name) {
-                    LoginScreen(onLoginButtonClicked = { navController.navigate(Screen.Home.name)})
+                    LoginScreen(loginViewModel = viewModel(), onLoginButtonClicked = { navController.navigate(Screen.Home.name)})
                 }
                 composable(Screen.Home.name) {
                     HomeScreen()
@@ -114,7 +118,5 @@ fun TopNavigationBar(modifier: Modifier = Modifier, currentScreen: Screen) {
 )
 @Composable
 fun LocusMobilePreview() {
-    LocusMobileTheme {
-        LocusMobile()
-    }
+    LocusMobile()
 }
