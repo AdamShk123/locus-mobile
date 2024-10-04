@@ -21,7 +21,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,14 +33,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.locusmobile.R
+import com.example.locusmobile.ui.UserState
 import com.example.locusmobile.ui.theme.LocusMobileTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(modifier: Modifier = Modifier, loginViewModel: LoginViewModel, onLoginButtonClicked: () -> Unit) {
-    val uiState by loginViewModel.uiState.collectAsStateWithLifecycle()
+    val username = loginViewModel.username
+    val password = loginViewModel.password
+    val coroutineScope = rememberCoroutineScope()
+    val userViewModel = UserState.current
 
     Column(
         modifier = modifier
@@ -50,8 +54,14 @@ fun LoginScreen(modifier: Modifier = Modifier, loginViewModel: LoginViewModel, o
         verticalArrangement = Arrangement.Center
     ) {
         Card(
-            uiState = uiState,
-            onLoginButtonClicked = onLoginButtonClicked,
+            username = username,
+            password = password,
+            onLoginButtonClicked = {
+                coroutineScope.launch {
+                    userViewModel.signIn(username,password)
+                }
+                onLoginButtonClicked()
+            },
             onUsernameFieldUpdated = { loginViewModel.updateUsernameField(it) },
             onPasswordFieldUpdated = { loginViewModel.updatePasswordField(it) }
         )
@@ -62,10 +72,11 @@ fun LoginScreen(modifier: Modifier = Modifier, loginViewModel: LoginViewModel, o
 @Composable
 fun Card(
     modifier: Modifier = Modifier,
-    uiState: LoginUIState,
     onLoginButtonClicked: () -> Unit,
     onUsernameFieldUpdated: (String) -> Unit,
-    onPasswordFieldUpdated: (String) -> Unit
+    onPasswordFieldUpdated: (String) -> Unit,
+    password: String,
+    username: String
 ) {
     Column(
         modifier = modifier
@@ -77,7 +88,8 @@ fun Card(
         verticalArrangement = Arrangement.Center
     ) {
         InputContainer(
-            uiState = uiState,
+            username = username,
+            password = password,
             onLoginButtonClicked = onLoginButtonClicked,
             onUsernameFieldUpdated = onUsernameFieldUpdated,
             onPasswordFieldUpdated = onPasswordFieldUpdated
@@ -89,10 +101,11 @@ fun Card(
 @Composable
 fun ColumnScope.InputContainer(
     modifier: Modifier = Modifier,
-    uiState: LoginUIState,
     onLoginButtonClicked: () -> Unit,
     onUsernameFieldUpdated: (String) -> Unit,
-    onPasswordFieldUpdated: (String) -> Unit
+    onPasswordFieldUpdated: (String) -> Unit,
+    username: String,
+    password: String
 ) {
     Column(
         modifier = modifier.weight(1f),
@@ -100,20 +113,26 @@ fun ColumnScope.InputContainer(
         verticalArrangement = Arrangement.Center
     ) {
         FieldContainer(
-            uiState = uiState,
+            username = username,
+            password = password,
             onUsernameFieldUpdated = onUsernameFieldUpdated,
             onPasswordFieldUpdated = onPasswordFieldUpdated
         )
-        ButtonContainer(uiState = uiState, onLoginButtonClicked = onLoginButtonClicked)
+        ButtonContainer(
+            username = username,
+            password = password,
+            onLoginButtonClicked = onLoginButtonClicked
+        )
     }
 }
 
 @Composable
 fun ColumnScope.FieldContainer(
     modifier: Modifier = Modifier,
-    uiState: LoginUIState,
     onUsernameFieldUpdated: (String) -> Unit,
-    onPasswordFieldUpdated: (String) -> Unit
+    onPasswordFieldUpdated: (String) -> Unit,
+    username: String,
+    password: String
 ) {
     Column(
         modifier = modifier
@@ -125,7 +144,7 @@ fun ColumnScope.FieldContainer(
     ) {
         TextField(
             label = { Text(text = stringResource(R.string.login_screen_username_field)) },
-            value = uiState.username,
+            value = username,
             onValueChange = onUsernameFieldUpdated,
             trailingIcon = {
                 Icon(Icons.Filled.Close, contentDescription = "Action Icon")
@@ -141,7 +160,7 @@ fun ColumnScope.FieldContainer(
         )
         TextField(
             label = { Text(text = stringResource(R.string.login_screen_password_field)) },
-            value = uiState.password,
+            value = password,
             onValueChange = onPasswordFieldUpdated,
             trailingIcon = {
                 Icon(Icons.Filled.Visibility, contentDescription = "Action Icon")
@@ -161,8 +180,10 @@ fun ColumnScope.FieldContainer(
 @Composable
 fun ButtonContainer(
     modifier: Modifier = Modifier,
-    uiState: LoginUIState,
-    onLoginButtonClicked: () -> Unit)
+    onLoginButtonClicked: () -> Unit,
+    username: String,
+    password: String
+)
 {
     Row(
         modifier = modifier
@@ -186,7 +207,7 @@ fun ButtonContainer(
         }
         Button(
             onClick = onLoginButtonClicked,
-            enabled = uiState.password != "" && uiState.username != "",
+            enabled = password != "" && username != "",
             shape = RectangleShape,
             colors = ButtonDefaults
                 .buttonColors()

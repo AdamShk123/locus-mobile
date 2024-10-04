@@ -15,6 +15,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
@@ -27,8 +28,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.locusmobile.ui.UserState
+import com.example.locusmobile.ui.UserStateViewModel
 import com.example.locusmobile.ui.home.HomeScreen
-import com.example.locusmobile.ui.login.LoginViewModel
 import com.example.locusmobile.ui.login.LoginScreen
 import com.example.locusmobile.ui.theme.LocusMobileTheme
 
@@ -46,24 +48,29 @@ fun LocusMobile(modifier: Modifier = Modifier) {
         backStackEntry?.destination?.route ?: Screen.Login.name
     )
 
-    val viewModel: LoginViewModel = viewModel()
+    val userState = viewModel<UserStateViewModel>()
 
     LocusMobileTheme {
         Scaffold(
             topBar = { TopNavigationBar(currentScreen = currentScreen) }
         ) { innerPadding ->
-            NavHost(
-                navController = navController,
-                startDestination = Screen.Login.name,
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                composable(Screen.Login.name) {
-                    LoginScreen(loginViewModel = viewModel(), onLoginButtonClicked = { navController.navigate(Screen.Home.name)})
-                }
-                composable(Screen.Home.name) {
-                    HomeScreen()
+            CompositionLocalProvider(UserState provides userState) {
+                NavHost(
+                    navController = navController,
+                    startDestination = Screen.Login.name,
+                    modifier = modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                ) {
+                    composable(Screen.Login.name) {
+                        LoginScreen(
+                            loginViewModel = viewModel(),
+                            onLoginButtonClicked = { navController.navigate(Screen.Home.name) }
+                        )
+                    }
+                    composable(Screen.Home.name) {
+                        HomeScreen()
+                    }
                 }
             }
         }
@@ -72,7 +79,7 @@ fun LocusMobile(modifier: Modifier = Modifier) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopNavigationBar(modifier: Modifier = Modifier, currentScreen: Screen) {
+fun TopNavigationBar(currentScreen: Screen) {
     CenterAlignedTopAppBar(
         colors = TopAppBarDefaults
             .topAppBarColors()
