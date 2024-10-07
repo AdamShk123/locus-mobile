@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Visibility
@@ -21,15 +23,19 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -41,8 +47,10 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(modifier: Modifier = Modifier, loginViewModel: LoginViewModel, onLoginButtonClicked: () -> Unit) {
+    val uiState = loginViewModel.uiState.collectAsState()
     val username = loginViewModel.username
     val password = loginViewModel.password
+
     val coroutineScope = rememberCoroutineScope()
     val userViewModel = UserState.current
 
@@ -54,13 +62,21 @@ fun LoginScreen(modifier: Modifier = Modifier, loginViewModel: LoginViewModel, o
         verticalArrangement = Arrangement.Center
     ) {
         Card(
+            uiState = uiState,
+            onKeyboardDone = { loginViewModel.checkFields() },
             username = username,
             password = password,
             onLoginButtonClicked = {
-                coroutineScope.launch {
-                    userViewModel.signIn(username,password)
-                }
-                onLoginButtonClicked()
+//                coroutineScope.launch {
+//                    userViewModel.signIn(username,password)
+//                    if(userViewModel.isLoggedIn) {
+//                        onLoginButtonClicked()
+//                    }
+//                    else {
+//                        loginViewModel.updateIncorrectLogin()
+//                    }
+//                }
+                loginViewModel.updateIncorrectLogin()
             },
             onUsernameFieldUpdated = { loginViewModel.updateUsernameField(it) },
             onPasswordFieldUpdated = { loginViewModel.updatePasswordField(it) }
@@ -76,7 +92,9 @@ fun Card(
     onUsernameFieldUpdated: (String) -> Unit,
     onPasswordFieldUpdated: (String) -> Unit,
     password: String,
-    username: String
+    username: String,
+    uiState: State<LoginState>,
+    onKeyboardDone: () -> Unit
 ) {
     Column(
         modifier = modifier
@@ -88,8 +106,10 @@ fun Card(
         verticalArrangement = Arrangement.Center
     ) {
         InputContainer(
+            uiState = uiState,
             username = username,
             password = password,
+            onKeyboardDone = onKeyboardDone,
             onLoginButtonClicked = onLoginButtonClicked,
             onUsernameFieldUpdated = onUsernameFieldUpdated,
             onPasswordFieldUpdated = onPasswordFieldUpdated
@@ -105,7 +125,9 @@ fun ColumnScope.InputContainer(
     onUsernameFieldUpdated: (String) -> Unit,
     onPasswordFieldUpdated: (String) -> Unit,
     username: String,
-    password: String
+    password: String,
+    uiState: State<LoginState>,
+    onKeyboardDone: () -> Unit
 ) {
     Column(
         modifier = modifier.weight(1f),
@@ -115,12 +137,13 @@ fun ColumnScope.InputContainer(
         FieldContainer(
             username = username,
             password = password,
+            isLoginIncorrect = uiState.value.isLoginIncorrect,
             onUsernameFieldUpdated = onUsernameFieldUpdated,
-            onPasswordFieldUpdated = onPasswordFieldUpdated
+            onPasswordFieldUpdated = onPasswordFieldUpdated,
+            onKeyboardDone = onKeyboardDone
         )
         ButtonContainer(
-            username = username,
-            password = password,
+            isLoginButtonEnabled = !uiState.value.areFieldsEmpty,
             onLoginButtonClicked = onLoginButtonClicked
         )
     }
@@ -132,8 +155,12 @@ fun ColumnScope.FieldContainer(
     onUsernameFieldUpdated: (String) -> Unit,
     onPasswordFieldUpdated: (String) -> Unit,
     username: String,
-    password: String
+    password: String,
+    onKeyboardDone: () -> Unit,
+    isLoginIncorrect: Boolean
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+
     Column(
         modifier = modifier
             .weight(1f)
@@ -142,10 +169,17 @@ fun ColumnScope.FieldContainer(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
+        if(isLoginIncorrect)
+            Text(
+                fontWeight = FontWeight.Bold,
+                color = colorResource(R.color.red),
+                text = stringResource(R.string.login_screen_login_incorrect)
+            )
         TextField(
             label = { Text(text = stringResource(R.string.login_screen_username_field)) },
             value = username,
             onValueChange = onUsernameFieldUpdated,
+            singleLine = true,
             trailingIcon = {
                 Icon(Icons.Filled.Close, contentDescription = "Action Icon")
             },
@@ -156,12 +190,20 @@ fun ColumnScope.FieldContainer(
                     focusedContainerColor = colorResource(R.color.dark_gray),
                     focusedIndicatorColor = colorResource(R.color.yellow)
                 ),
-            modifier = modifier.fillMaxWidth()
+            modifier = modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    keyboardController?.hide()
+                    onKeyboardDone()
+                }
+            )
         )
         TextField(
             label = { Text(text = stringResource(R.string.login_screen_password_field)) },
             value = password,
             onValueChange = onPasswordFieldUpdated,
+            singleLine = true,
             trailingIcon = {
                 Icon(Icons.Filled.Visibility, contentDescription = "Action Icon")
             },
@@ -172,7 +214,14 @@ fun ColumnScope.FieldContainer(
                     focusedContainerColor = colorResource(R.color.dark_gray),
                     focusedIndicatorColor = colorResource(R.color.yellow)
                 ),
-            modifier = modifier.fillMaxWidth()
+            modifier = modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    keyboardController?.hide()
+                    onKeyboardDone()
+                }
+            )
         )
     }
 }
@@ -181,8 +230,7 @@ fun ColumnScope.FieldContainer(
 fun ButtonContainer(
     modifier: Modifier = Modifier,
     onLoginButtonClicked: () -> Unit,
-    username: String,
-    password: String
+    isLoginButtonEnabled: Boolean
 )
 {
     Row(
@@ -207,7 +255,7 @@ fun ButtonContainer(
         }
         Button(
             onClick = onLoginButtonClicked,
-            enabled = password != "" && username != "",
+            enabled = isLoginButtonEnabled,
             shape = RectangleShape,
             colors = ButtonDefaults
                 .buttonColors()
