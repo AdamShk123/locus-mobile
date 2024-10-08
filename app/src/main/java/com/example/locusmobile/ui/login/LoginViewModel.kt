@@ -1,11 +1,9 @@
 package com.example.locusmobile.ui.login
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.example.locusmobile.TAG
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,10 +28,8 @@ class LoginViewModel : ViewModel() {
     }
 
     fun checkFields(): Unit {
-        val result = checkFieldsEmpty()
-        Log.d(TAG,"checkFields() called, result: $result")
         _uiState.update { currentState ->
-            currentState.copy(areFieldsEmpty = result)
+            currentState.copy(areFieldsEmpty = checkFieldsEmpty())
         }
     }
 

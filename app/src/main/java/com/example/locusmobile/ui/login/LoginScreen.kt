@@ -76,7 +76,7 @@ fun LoginScreen(modifier: Modifier = Modifier, loginViewModel: LoginViewModel, o
 //                        loginViewModel.updateIncorrectLogin()
 //                    }
 //                }
-                loginViewModel.updateIncorrectLogin()
+                onLoginButtonClicked()
             },
             onUsernameFieldUpdated = { loginViewModel.updateUsernameField(it) },
             onPasswordFieldUpdated = { loginViewModel.updatePasswordField(it) }
