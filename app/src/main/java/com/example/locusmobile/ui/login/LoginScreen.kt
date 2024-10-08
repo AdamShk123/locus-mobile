@@ -1,7 +1,10 @@
 package com.example.locusmobile.ui.login
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -10,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActionScope
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -25,11 +29,16 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusState
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -54,16 +63,49 @@ fun LoginScreen(modifier: Modifier = Modifier, loginViewModel: LoginViewModel, o
     val coroutineScope = rememberCoroutineScope()
     val userViewModel = UserState.current
 
+    LoginScreen(modifier = modifier,
+        uiState = uiState,
+        username = username,
+        password = password,
+        onLoginButtonClicked = onLoginButtonClicked,
+        onKeyboardDone = { loginViewModel.checkFields() },
+        onUsernameFieldUpdated = { loginViewModel.updateUsernameField(it) },
+        onPasswordFieldUpdated = { loginViewModel.updatePasswordField(it) }
+    )
+}
+
+@Composable
+fun LoginScreen(
+    modifier: Modifier = Modifier,
+    uiState: State<LoginState>,
+    username: String,
+    password: String,
+    onLoginButtonClicked: () -> Unit,
+    onKeyboardDone: () -> Unit,
+    onUsernameFieldUpdated: (String) -> Unit,
+    onPasswordFieldUpdated: (String) -> Unit
+) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    val interactionSource = remember { MutableInteractionSource() }
     Column(
         modifier = modifier
             .fillMaxSize()
+            .clickable(
+                onClickLabel = stringResource(R.string.login_screen_composable),
+                interactionSource = interactionSource,
+                indication = null)
+            {
+                focusManager.clearFocus()
+                keyboardController?.hide()
+            }
             .background(colorResource(R.color.white)),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Card(
             uiState = uiState,
-            onKeyboardDone = { loginViewModel.checkFields() },
+            onKeyboardDone = onKeyboardDone,
             username = username,
             password = password,
             onLoginButtonClicked = {
@@ -78,8 +120,8 @@ fun LoginScreen(modifier: Modifier = Modifier, loginViewModel: LoginViewModel, o
 //                }
                 onLoginButtonClicked()
             },
-            onUsernameFieldUpdated = { loginViewModel.updateUsernameField(it) },
-            onPasswordFieldUpdated = { loginViewModel.updatePasswordField(it) }
+            onUsernameFieldUpdated = onUsernameFieldUpdated,
+            onPasswordFieldUpdated = onPasswordFieldUpdated
         )
         Logo()
     }
@@ -157,9 +199,26 @@ fun ColumnScope.FieldContainer(
     username: String,
     password: String,
     onKeyboardDone: () -> Unit,
-    isLoginIncorrect: Boolean
+    isLoginIncorrect: Boolean,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+
+    val onFocusChanged: (FocusState) -> Unit = { focusState ->
+        if(focusState.isFocused) {
+            keyboardController?.show()
+        }
+        else {
+            keyboardController?.hide()
+            onKeyboardDone()
+        }
+    }
+
+    val onDone: (KeyboardActionScope.() -> Unit)= {
+        keyboardController?.hide()
+        focusManager.clearFocus()
+        onKeyboardDone()
+    }
 
     Column(
         modifier = modifier
@@ -190,13 +249,12 @@ fun ColumnScope.FieldContainer(
                     focusedContainerColor = colorResource(R.color.dark_gray),
                     focusedIndicatorColor = colorResource(R.color.yellow)
                 ),
-            modifier = modifier.fillMaxWidth(),
+            modifier = modifier
+                .fillMaxWidth()
+                .onFocusChanged(onFocusChanged = onFocusChanged),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(
-                onDone = {
-                    keyboardController?.hide()
-                    onKeyboardDone()
-                }
+                onDone = onDone
             )
         )
         TextField(
@@ -214,13 +272,12 @@ fun ColumnScope.FieldContainer(
                     focusedContainerColor = colorResource(R.color.dark_gray),
                     focusedIndicatorColor = colorResource(R.color.yellow)
                 ),
-            modifier = modifier.fillMaxWidth(),
+            modifier = modifier
+                .fillMaxWidth()
+                .onFocusChanged(onFocusChanged = onFocusChanged),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(
-                onDone = {
-                    keyboardController?.hide()
-                    onKeyboardDone()
-                }
+                onDone = onDone
             )
         )
     }
@@ -289,7 +346,9 @@ fun ColumnScope.DescriptionContainer(modifier: Modifier = Modifier) {
 @Composable
 fun ColumnScope.AboutContainer(modifier: Modifier = Modifier) {
     Column(
-        modifier = modifier.weight(2f).fillMaxWidth(),
+        modifier = modifier
+            .weight(2f)
+            .fillMaxWidth(),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Center
     ) {
@@ -346,7 +405,16 @@ fun Logo(modifier: Modifier = Modifier) {
 )
 @Composable
 fun LoginScreenPreview() {
+    val loginState = remember { mutableStateOf(LoginState()) }
     LocusMobileTheme {
-        LoginScreen(onLoginButtonClicked = {}, loginViewModel = viewModel())
+        LoginScreen(
+            uiState = loginState,
+            username = "username",
+            password = "password",
+            onLoginButtonClicked = {},
+            onKeyboardDone = {},
+            onUsernameFieldUpdated = {},
+            onPasswordFieldUpdated = {}
+        )
     }
 }

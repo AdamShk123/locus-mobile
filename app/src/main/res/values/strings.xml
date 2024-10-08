@@ -12,4 +12,5 @@
     <string name="login_screen_forgot_password_button">Forgot Password?</string>
     <string name="login_screen_login_button">Login</string>
     <string name="login_screen_login_incorrect">Username or password is incorrect.</string>
+    <string name="login_screen_composable">Login Screen Composable</string>
 </resources>
