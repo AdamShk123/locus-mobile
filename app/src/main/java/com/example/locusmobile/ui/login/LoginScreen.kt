@@ -1,11 +1,11 @@
 package com.example.locusmobile.ui.login
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -38,6 +39,7 @@ import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
@@ -48,7 +50,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.locusmobile.R
 import com.example.locusmobile.ui.UserState
 import com.example.locusmobile.ui.theme.LocusMobileTheme
@@ -60,9 +61,6 @@ fun LoginScreen(modifier: Modifier = Modifier, loginViewModel: LoginViewModel, o
     val username = loginViewModel.username
     val password = loginViewModel.password
 
-    val coroutineScope = rememberCoroutineScope()
-    val userViewModel = UserState.current
-
     LoginScreen(modifier = modifier,
         uiState = uiState,
         username = username,
@@ -70,7 +68,8 @@ fun LoginScreen(modifier: Modifier = Modifier, loginViewModel: LoginViewModel, o
         onLoginButtonClicked = onLoginButtonClicked,
         onKeyboardDone = { loginViewModel.checkFields() },
         onUsernameFieldUpdated = { loginViewModel.updateUsernameField(it) },
-        onPasswordFieldUpdated = { loginViewModel.updatePasswordField(it) }
+        onPasswordFieldUpdated = { loginViewModel.updatePasswordField(it) },
+        onIncorrectLogin = { loginViewModel.updateIncorrectLogin() }
     )
 }
 
@@ -83,11 +82,16 @@ fun LoginScreen(
     onLoginButtonClicked: () -> Unit,
     onKeyboardDone: () -> Unit,
     onUsernameFieldUpdated: (String) -> Unit,
-    onPasswordFieldUpdated: (String) -> Unit
+    onPasswordFieldUpdated: (String) -> Unit,
+    onIncorrectLogin: () -> Unit
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     val interactionSource = remember { MutableInteractionSource() }
+
+    val coroutineScope = rememberCoroutineScope()
+    val userViewModel = UserState.current
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -109,16 +113,15 @@ fun LoginScreen(
             username = username,
             password = password,
             onLoginButtonClicked = {
-//                coroutineScope.launch {
-//                    userViewModel.signIn(username,password)
-//                    if(userViewModel.isLoggedIn) {
-//                        onLoginButtonClicked()
-//                    }
-//                    else {
-//                        loginViewModel.updateIncorrectLogin()
-//                    }
-//                }
-                onLoginButtonClicked()
+                coroutineScope.launch {
+                    userViewModel.signIn(username,password)
+                    if(userViewModel.isLoggedIn) {
+                        onLoginButtonClicked()
+                    }
+                    else {
+                        onIncorrectLogin()
+                    }
+                }
             },
             onUsernameFieldUpdated = onUsernameFieldUpdated,
             onPasswordFieldUpdated = onPasswordFieldUpdated
@@ -414,7 +417,8 @@ fun LoginScreenPreview() {
             onLoginButtonClicked = {},
             onKeyboardDone = {},
             onUsernameFieldUpdated = {},
-            onPasswordFieldUpdated = {}
+            onPasswordFieldUpdated = {},
+            onIncorrectLogin = { }
         )
     }
 }

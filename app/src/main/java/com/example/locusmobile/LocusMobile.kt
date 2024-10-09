@@ -28,13 +28,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.locusmobile.data.network.NetworkUserApiService
-import com.example.locusmobile.data.repository.NetworkUsersRepository
-import com.example.locusmobile.data.repository.UsersRepository
-import com.example.locusmobile.data.source.UsersLocalDataSource
-import com.example.locusmobile.data.source.UsersNetworkDataSource
+import com.example.locusmobile.data.repository.UsersRepositoryImpl
+import com.example.locusmobile.data.source.UsersLocalDataSourceImpl
+import com.example.locusmobile.data.source.UsersNetworkDataSourceImpl
 import com.example.locusmobile.ui.UserState
-import com.example.locusmobile.ui.UserStateViewModel
+import com.example.locusmobile.ui.UserViewModel
 import com.example.locusmobile.ui.home.HomeScreen
 import com.example.locusmobile.ui.login.LoginScreen
 import com.example.locusmobile.ui.theme.LocusMobileTheme
@@ -53,23 +51,21 @@ fun LocusMobile(modifier: Modifier = Modifier) {
         backStackEntry?.destination?.route ?: Screen.Login.name
     )
 
-    val userApiService = NetworkUserApiService()
+    val usersLocalDataSource = UsersLocalDataSourceImpl()
 
-    val usersLocalDataSource = UsersLocalDataSource()
+    val usersNetworkDataSource = UsersNetworkDataSourceImpl()
 
-    val usersNetworkDataSource = UsersNetworkDataSource(userApiService)
+    val usersRepository = UsersRepositoryImpl(usersNetworkDataSource,usersLocalDataSource)
 
-    val usersRepository = NetworkUsersRepository(usersNetworkDataSource,usersLocalDataSource)
-
-    val userStateViewModel = viewModel {
-        UserStateViewModel(usersRepository)
+    val userViewModel = viewModel {
+        UserViewModel(usersRepository)
     }
 
     LocusMobileTheme {
         Scaffold(
             topBar = { TopNavigationBar(currentScreen = currentScreen) }
         ) { innerPadding ->
-            CompositionLocalProvider(UserState provides userStateViewModel) {
+            CompositionLocalProvider(UserState provides userViewModel) {
                 NavHost(
                     navController = navController,
                     startDestination = Screen.Login.name,

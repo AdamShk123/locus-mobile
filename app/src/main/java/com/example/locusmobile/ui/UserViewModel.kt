@@ -9,16 +9,20 @@ import com.example.locusmobile.data.repository.UsersRepository
 import com.example.locusmobile.data.model.User
 import kotlinx.coroutines.delay
 
-class UserStateViewModel(private val usersRepository: UsersRepository): ViewModel() {
+class UserViewModel(private val usersRepository: UsersRepository): ViewModel() {
     var isLoggedIn by mutableStateOf(false)
     var isBusy by mutableStateOf(false)
     var user by mutableStateOf(User())
 
     suspend fun signIn(id: String, password: String) {
         isBusy = true
-        user = usersRepository.getUser(id)
-        delay(2000)
-        isLoggedIn = true
+        val result = usersRepository.getUser(id)
+        result.onSuccess { user ->
+            this.user = user
+            isLoggedIn = true
+        }.onFailure { exception ->
+            isLoggedIn = false
+        }
         isBusy = false
     }
 
@@ -30,4 +34,4 @@ class UserStateViewModel(private val usersRepository: UsersRepository): ViewMode
     }
 }
 
-val UserState = compositionLocalOf<UserStateViewModel> { error("User State Context Not Found!") }
+val UserState = compositionLocalOf<UserViewModel> { error("User State Context Not Found!") }
