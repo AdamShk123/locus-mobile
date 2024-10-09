@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+//    id("com.google.dagger.hilt.android")
+    id("kotlin-kapt")
 }
 
 android {
@@ -64,10 +66,33 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.ui.test.junit4)
+    testImplementation(libs.kotlinx.coroutines.test)
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
     debugImplementation(libs.ui.test.manifest)
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.navigation.compose)
+//
+//    implementation(libs.hilt.android)
+//    kapt(libs.hilt.android.compiler)
+//    // For instrumentation tests
+//    androidTestImplementation(libs.hilt.android.testing)
+//    kaptAndroidTest(libs.hilt.compiler)
+//
+//    // For local unit tests
+//    testImplementation(libs.dagger.hilt.android.testing)
+//    kaptTest(libs.hilt.compiler)
+
+//    implementation(libs.ktor.client.core)
+//    implementation(libs.ktor.client.android)
+//    implementation(libs.ktor.client.serialization.jvm)
+//    implementation(libs.ktor.client.logging)
+}
+
+// Allow references to generated code
+kapt {
+    correctErrorTypes = true
 }

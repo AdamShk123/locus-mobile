@@ -5,14 +5,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import com.example.locusmobile.data.repository.UsersRepository
+import com.example.locusmobile.data.model.User
 import kotlinx.coroutines.delay
 
-class UserStateViewModel: ViewModel() {
+class UserStateViewModel(private val usersRepository: UsersRepository): ViewModel() {
     var isLoggedIn by mutableStateOf(false)
     var isBusy by mutableStateOf(false)
+    var user by mutableStateOf(User())
 
-    suspend fun signIn(email: String, password: String) {
+    suspend fun signIn(id: String, password: String) {
         isBusy = true
+        user = usersRepository.getUser(id)
         delay(2000)
         isLoggedIn = true
         isBusy = false

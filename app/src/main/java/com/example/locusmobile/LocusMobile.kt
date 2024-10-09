@@ -28,6 +28,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.locusmobile.data.network.NetworkUserApiService
+import com.example.locusmobile.data.repository.NetworkUsersRepository
+import com.example.locusmobile.data.repository.UsersRepository
+import com.example.locusmobile.data.source.UsersLocalDataSource
+import com.example.locusmobile.data.source.UsersNetworkDataSource
 import com.example.locusmobile.ui.UserState
 import com.example.locusmobile.ui.UserStateViewModel
 import com.example.locusmobile.ui.home.HomeScreen
@@ -48,13 +53,23 @@ fun LocusMobile(modifier: Modifier = Modifier) {
         backStackEntry?.destination?.route ?: Screen.Login.name
     )
 
-    val userState = viewModel<UserStateViewModel>()
+    val userApiService = NetworkUserApiService()
+
+    val usersLocalDataSource = UsersLocalDataSource()
+
+    val usersNetworkDataSource = UsersNetworkDataSource(userApiService)
+
+    val usersRepository = NetworkUsersRepository(usersNetworkDataSource,usersLocalDataSource)
+
+    val userStateViewModel = viewModel {
+        UserStateViewModel(usersRepository)
+    }
 
     LocusMobileTheme {
         Scaffold(
             topBar = { TopNavigationBar(currentScreen = currentScreen) }
         ) { innerPadding ->
-            CompositionLocalProvider(UserState provides userState) {
+            CompositionLocalProvider(UserState provides userStateViewModel) {
                 NavHost(
                     navController = navController,
                     startDestination = Screen.Login.name,
