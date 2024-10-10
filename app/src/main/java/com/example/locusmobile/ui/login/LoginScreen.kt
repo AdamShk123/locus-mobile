@@ -61,15 +61,27 @@ fun LoginScreen(modifier: Modifier = Modifier, loginViewModel: LoginViewModel, o
     val username = loginViewModel.username
     val password = loginViewModel.password
 
+    val userViewModel = UserState.current
+    val coroutineScope = rememberCoroutineScope()
+
     LoginScreen(modifier = modifier,
         uiState = uiState,
         username = username,
         password = password,
-        onLoginButtonClicked = onLoginButtonClicked,
+        onLoginButtonClicked = {
+            coroutineScope.launch {
+                userViewModel.signIn(username,password)
+                if(userViewModel.isLoggedIn) {
+                    onLoginButtonClicked()
+                }
+                else {
+                    loginViewModel.updateIncorrectLogin()
+                }
+            }
+        },
         onKeyboardDone = { loginViewModel.checkFields() },
         onUsernameFieldUpdated = { loginViewModel.updateUsernameField(it) },
-        onPasswordFieldUpdated = { loginViewModel.updatePasswordField(it) },
-        onIncorrectLogin = { loginViewModel.updateIncorrectLogin() }
+        onPasswordFieldUpdated = { loginViewModel.updatePasswordField(it) }
     )
 }
 
@@ -82,15 +94,11 @@ fun LoginScreen(
     onLoginButtonClicked: () -> Unit,
     onKeyboardDone: () -> Unit,
     onUsernameFieldUpdated: (String) -> Unit,
-    onPasswordFieldUpdated: (String) -> Unit,
-    onIncorrectLogin: () -> Unit
+    onPasswordFieldUpdated: (String) -> Unit
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     val interactionSource = remember { MutableInteractionSource() }
-
-    val coroutineScope = rememberCoroutineScope()
-    val userViewModel = UserState.current
 
     Column(
         modifier = modifier
@@ -112,17 +120,7 @@ fun LoginScreen(
             onKeyboardDone = onKeyboardDone,
             username = username,
             password = password,
-            onLoginButtonClicked = {
-                coroutineScope.launch {
-                    userViewModel.signIn(username,password)
-                    if(userViewModel.isLoggedIn) {
-                        onLoginButtonClicked()
-                    }
-                    else {
-                        onIncorrectLogin()
-                    }
-                }
-            },
+            onLoginButtonClicked = onLoginButtonClicked,
             onUsernameFieldUpdated = onUsernameFieldUpdated,
             onPasswordFieldUpdated = onPasswordFieldUpdated
         )
@@ -417,8 +415,7 @@ fun LoginScreenPreview() {
             onLoginButtonClicked = {},
             onKeyboardDone = {},
             onUsernameFieldUpdated = {},
-            onPasswordFieldUpdated = {},
-            onIncorrectLogin = { }
+            onPasswordFieldUpdated = {}
         )
     }
 }
