@@ -13,4 +13,7 @@
     <string name="login_screen_login_button">Login</string>
     <string name="login_screen_login_incorrect">Username or password is incorrect.</string>
     <string name="login_screen_composable">Login Screen Composable</string>
+    <string name="login_screen_username_field_delete_icon_button">Delete Text</string>
+    <string name="login_screen_password_field_on_icon_button">Turn Visibility On</string>
+    <string name="login_screen_password_field_off_icon_button">Turn Visibility Off</string>
 </resources>
